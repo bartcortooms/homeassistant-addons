@@ -1,5 +1,5 @@
 name: Litestream SQLite Backup
-version: "1.0.4"
+version: "1.0.5"
 slug: litestream
 description: Continuous SQLite database replication to cloud storage (S3, GCS, Azure)
 url: https://litestream.io
@@ -23,7 +23,7 @@ options:
   s3_secret_access_key: ""
   s3_region: us-east-1
   sync_interval: "5m"
-  retention: "24h"
+  retention: "168h"
   retention_check_interval: "1h"
 schema:
   replica_type: list(gcs|s3)

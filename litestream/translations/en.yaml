@@ -31,11 +31,13 @@ configuration:
   sync_interval:
     name: Sync Interval
     description: >-
-      How often to sync changes to cloud storage. Default 5m (5 minutes) keeps costs low.
-      Shorter intervals increase cloud storage costs (1s ≈ $13/mo, 1m ≈ $0.22/mo, 5m ≈ $0.04/mo).
+      How often to sync changes to cloud storage. Default 5m keeps costs low.
+      Uses Go duration format (h/m/s). Costs: 1s ≈ $13/mo, 1m ≈ $0.22/mo, 5m ≈ $0.04/mo.
   retention:
     name: Retention Period
-    description: How long to keep WAL files for point-in-time recovery (e.g., 24h, 7d)
+    description: >-
+      How long to keep WAL files for point-in-time recovery.
+      Uses Go duration format: h (hours), m (minutes), s (seconds). Days not supported - use 168h for 7 days.
   retention_check_interval:
     name: Retention Check Interval
-    description: How often to clean up old WAL files (e.g., 1h, 6h)
+    description: How often to clean up old WAL files (e.g., 1h, 6h). Uses Go duration format.
