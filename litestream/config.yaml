@@ -1,0 +1,38 @@
+name: Litestream SQLite Backup
+version: "1.0.0"
+slug: litestream
+description: Continuous SQLite database replication to cloud storage (S3, GCS, Azure)
+url: https://litestream.io
+arch:
+  - aarch64
+  - amd64
+  - armv7
+startup: services
+boot: auto
+map:
+  - config:rw
+  - ssl:ro
+options:
+  replica_type: gcs
+  bucket: ""
+  path: home-assistant
+  gcs_credentials_json: ""
+  s3_endpoint: ""
+  s3_access_key_id: ""
+  s3_secret_access_key: ""
+  s3_region: us-east-1
+  sync_interval: "1s"
+  retention: "24h"
+  retention_check_interval: "1h"
+schema:
+  replica_type: list(gcs|s3)
+  bucket: str
+  path: str
+  gcs_credentials_json: str?
+  s3_endpoint: str?
+  s3_access_key_id: str?
+  s3_secret_access_key: str?
+  s3_region: str?
+  sync_interval: str?
+  retention: str?
+  retention_check_interval: str?
