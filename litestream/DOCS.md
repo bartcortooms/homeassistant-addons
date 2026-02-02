@@ -4,9 +4,9 @@ This add-on continuously replicates your Home Assistant SQLite database to cloud
 
 ## Features
 
-- **Continuous replication**: Changes are streamed in real-time (default: every 1 second)
+- **Continuous replication**: Changes are synced every 5 minutes (configurable)
 - **Point-in-time recovery**: Restore your database to any point in time
-- **Low cost**: Typically < $1/month for cloud storage
+- **Low cost**: ~$0.04/month for GCS with default settings
 - **Supports**: Google Cloud Storage (GCS) and S3-compatible storage
 
 ## Configuration
@@ -14,7 +14,7 @@ This add-on continuously replicates your Home Assistant SQLite database to cloud
 ### Google Cloud Storage (GCS)
 
 1. Create a GCS bucket
-2. Create a service account with `Storage Object Admin` role
+2. Create a service account with `Storage Object Admin` role on the bucket
 3. Download the JSON key file
 4. Paste the entire JSON content into the `gcs_credentials_json` field
 
@@ -60,9 +60,19 @@ s3_region: us-west-001
 | `replica_type` | `gcs` | Storage type: `gcs` or `s3` |
 | `bucket` | (required) | Bucket name |
 | `path` | `home-assistant` | Path prefix within bucket |
-| `sync_interval` | `1s` | How often to sync changes |
-| `retention` | `24h` | How long to keep WAL files for point-in-time recovery |
-| `retention_check_interval` | `1h` | How often to check for old WAL files |
+| `sync_interval` | `5m` | How often to sync changes |
+| `retention` | `168h` | How long to keep WAL files (7 days) |
+| `retention_check_interval` | `1h` | How often to clean up old WAL files |
+
+**Note on durations:** Uses Go duration format - only `h` (hours), `m` (minutes), `s` (seconds) are supported. Days are not supported, use `168h` for 7 days.
+
+### Cost Estimates (GCS)
+
+| Sync Interval | Operations/month | Est. Cost |
+|---------------|-----------------|-----------|
+| 1s | 2,592,000 | ~$13/month |
+| 1m | 43,200 | ~$0.22/month |
+| 5m (default) | 8,640 | ~$0.04/month |
 
 ## Restoring from Backup
 
