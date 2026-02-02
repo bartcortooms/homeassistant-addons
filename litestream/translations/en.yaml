@@ -31,8 +31,8 @@ configuration:
   sync_interval:
     name: Sync Interval
     description: >-
-      How often to sync changes to cloud storage. Default 1m (1 minute) is recommended.
-      Shorter intervals increase cloud storage costs (1s ≈ $13/mo, 1m ≈ $0.22/mo).
+      How often to sync changes to cloud storage. Default 5m (5 minutes) keeps costs low.
+      Shorter intervals increase cloud storage costs (1s ≈ $13/mo, 1m ≈ $0.22/mo, 5m ≈ $0.04/mo).
   retention:
     name: Retention Period
     description: How long to keep WAL files for point-in-time recovery (e.g., 24h, 7d)
