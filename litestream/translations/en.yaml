@@ -30,7 +30,9 @@ configuration:
     description: AWS region (e.g., us-east-1, eu-west-1)
   sync_interval:
     name: Sync Interval
-    description: How often to sync changes to cloud storage (e.g., 1s, 10s, 1m)
+    description: >-
+      How often to sync changes to cloud storage. Default 1m (1 minute) is recommended.
+      Shorter intervals increase cloud storage costs (1s ≈ $13/mo, 1m ≈ $0.22/mo).
   retention:
     name: Retention Period
     description: How long to keep WAL files for point-in-time recovery (e.g., 24h, 7d)
