@@ -39,8 +39,12 @@ if [ "$REPLICA_TYPE" = "gcs" ]; then
     fi
 
     # Write credentials to file
-    echo "$GCS_CREDS" > /tmp/gcs-credentials.json
+    printf '%s' "$GCS_CREDS" > /tmp/gcs-credentials.json
     export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcs-credentials.json"
+
+    # Debug: verify credentials file
+    bashio::log.info "Credentials file size: $(wc -c < /tmp/gcs-credentials.json) bytes"
+    bashio::log.info "Credentials project: $(grep -o '"project_id"[^,]*' /tmp/gcs-credentials.json | head -1)"
 
     cat > "$CONFIG_FILE" << EOF
 dbs:
