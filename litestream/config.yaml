@@ -1,5 +1,5 @@
 name: Litestream SQLite Backup
-version: "1.0.0"
+version: "1.0.1"
 slug: litestream
 description: Continuous SQLite database replication to cloud storage (S3, GCS, Azure)
 url: https://litestream.io
@@ -9,6 +9,7 @@ arch:
   - armv7
 startup: services
 boot: auto
+init: false
 map:
   - config:rw
   - ssl:ro

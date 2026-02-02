@@ -3,7 +3,7 @@ FROM ${BUILD_FROM}
 
 # Install Litestream
 ARG LITESTREAM_VERSION=0.3.13
-RUN apk add --no-cache wget ca-certificates \
+RUN apk add --no-cache wget ca-certificates jq \
     && ARCH=$(uname -m) \
     && case "$ARCH" in \
          x86_64) LITESTREAM_ARCH="amd64" ;; \
@@ -16,8 +16,5 @@ RUN apk add --no-cache wget ca-certificates \
     && rm /tmp/litestream.tar.gz \
     && chmod +x /usr/local/bin/litestream
 
-# Copy run script
-COPY run.sh /
-RUN chmod +x /run.sh
-
-CMD ["/run.sh"]
+# Copy s6-overlay service
+COPY rootfs /

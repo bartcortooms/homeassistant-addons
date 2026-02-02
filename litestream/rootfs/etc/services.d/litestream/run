@@ -1,4 +1,7 @@
 #!/usr/bin/with-contenv bashio
+# shellcheck shell=bash
+
+bashio::log.info "Starting Litestream SQLite Backup add-on"
 
 # Read configuration
 REPLICA_TYPE=$(bashio::config 'replica_type')
@@ -14,20 +17,24 @@ DB_PATH="/config/home-assistant_v2.db"
 # Check if database exists
 if [ ! -f "$DB_PATH" ]; then
     bashio::log.error "Home Assistant database not found at $DB_PATH"
+    bashio::log.error "Make sure Home Assistant has started at least once"
+    sleep 30
     exit 1
 fi
 
-bashio::log.info "Starting Litestream backup for Home Assistant database"
 bashio::log.info "Replica type: ${REPLICA_TYPE}"
 bashio::log.info "Bucket: ${BUCKET}"
 bashio::log.info "Path: ${PATH_PREFIX}"
 
-# Build replica configuration based on type
+# Build litestream configuration
+CONFIG_FILE="/tmp/litestream.yml"
+
 if [ "$REPLICA_TYPE" = "gcs" ]; then
     GCS_CREDS=$(bashio::config 'gcs_credentials_json')
 
     if [ -z "$GCS_CREDS" ]; then
         bashio::log.error "GCS credentials JSON is required for GCS replica type"
+        sleep 30
         exit 1
     fi
 
@@ -35,7 +42,17 @@ if [ "$REPLICA_TYPE" = "gcs" ]; then
     echo "$GCS_CREDS" > /tmp/gcs-credentials.json
     export GOOGLE_APPLICATION_CREDENTIALS="/tmp/gcs-credentials.json"
 
-    REPLICA_URL="gcs://${BUCKET}/${PATH_PREFIX}"
+    cat > "$CONFIG_FILE" << EOF
+dbs:
+  - path: ${DB_PATH}
+    replicas:
+      - type: gcs
+        bucket: ${BUCKET}
+        path: ${PATH_PREFIX}
+        sync-interval: ${SYNC_INTERVAL}
+        retention: ${RETENTION}
+        retention-check-interval: ${RETENTION_CHECK_INTERVAL}
+EOF
 
 elif [ "$REPLICA_TYPE" = "s3" ]; then
     S3_ENDPOINT=$(bashio::config 's3_endpoint')
@@ -45,48 +62,30 @@ elif [ "$REPLICA_TYPE" = "s3" ]; then
 
     if [ -z "$S3_ACCESS_KEY" ] || [ -z "$S3_SECRET_KEY" ]; then
         bashio::log.error "S3 access key and secret key are required for S3 replica type"
+        sleep 30
         exit 1
     fi
 
     export AWS_ACCESS_KEY_ID="$S3_ACCESS_KEY"
     export AWS_SECRET_ACCESS_KEY="$S3_SECRET_KEY"
 
-    REPLICA_URL="s3://${BUCKET}/${PATH_PREFIX}"
-fi
-
-# Create litestream configuration
-cat > /tmp/litestream.yml << EOF
+    cat > "$CONFIG_FILE" << EOF
 dbs:
   - path: ${DB_PATH}
     replicas:
-      - type: ${REPLICA_TYPE}
+      - type: s3
         bucket: ${BUCKET}
         path: ${PATH_PREFIX}
         sync-interval: ${SYNC_INTERVAL}
         retention: ${RETENTION}
         retention-check-interval: ${RETENTION_CHECK_INTERVAL}
-EOF
-
-# Add S3-specific config
-if [ "$REPLICA_TYPE" = "s3" ]; then
-    S3_ENDPOINT=$(bashio::config 's3_endpoint')
-    S3_REGION=$(bashio::config 's3_region')
-
-    if [ -n "$S3_ENDPOINT" ]; then
-        cat >> /tmp/litestream.yml << EOF
-        endpoint: ${S3_ENDPOINT}
-EOF
-    fi
-
-    if [ -n "$S3_REGION" ]; then
-        cat >> /tmp/litestream.yml << EOF
         region: ${S3_REGION}
 EOF
+
+    if [ -n "$S3_ENDPOINT" ]; then
+        echo "        endpoint: ${S3_ENDPOINT}" >> "$CONFIG_FILE"
     fi
 fi
 
-bashio::log.info "Litestream configuration:"
-cat /tmp/litestream.yml
-
 bashio::log.info "Starting Litestream replication..."
-exec /usr/local/bin/litestream replicate -config /tmp/litestream.yml
+exec /usr/local/bin/litestream replicate -config "$CONFIG_FILE"
